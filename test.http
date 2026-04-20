@@ -1,0 +1,7 @@
+POST https://you-do-sudoku-api.vercel.app/api HTTP/1.1
+content-type: application/json
+x-api-key: LLKj5Xsm0iQqaTHxWVvUZv2TO9z2jZep6v0V5Pu_tG4
+
+{
+  "difficulty": "medium"
+}
