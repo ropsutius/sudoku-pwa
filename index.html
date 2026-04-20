@@ -11,20 +11,47 @@
 
 <body>
     <div class="container">
-        <header>
+        <div class="main-menu" id="mainMenu">
             <h1>Sudoku</h1>
-        </header>
+            <br>
+            <br>
+            <div class="difficulty-label">Select Difficulty</div>
+            <div class="menu-controls">
+                <select id="difficulty" class="difficulty-select">
+                    <option value="easy">Easy</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="hard">Hard</option>
+                </select>
+                <button onclick="startGame()" class="btn btn-primary">Start Game</button>
+            </div>
+        </div>
 
-        <div id="grid"></div>
-
-        <div class="controls">
-            <select id="difficulty" class="difficulty-select">
-                <option value="easy">Easy</option>
-                <option value="medium" selected>Medium</option>
-                <option value="hard">Hard</option>
-            </select>
-            <button onclick="newGame()" class="btn btn-primary">New Game</button>
-            <button onclick="checkSolution()" class="btn btn-secondary">Check Solution</button>
+        <div id="gameScreen" class="hidden">
+            <div id="grid"></div>
+            <div id="numberPad" class="number-pad">
+                <button id="undoBtn" class="pad-btn function undo" data-value="undo">
+                    <img src="icons/undo.png" alt="undo" class="btn-icon">
+                    Undo
+                </button>
+                <button id="clearBtn" class="pad-btn function" data-value="">
+                    <img src="icons/eraser.png" alt="clear" class="btn-icon">
+                    Clear
+                </button>
+                <button id="notesBtn" class="pad-btn function" data-value="notes">
+                    <img src="icons/edit.png" alt="edit" class="btn-icon">
+                    Notes
+                </button>
+                <button class="pad-btn" data-value="1">1</button>
+                <button class="pad-btn" data-value="2">2</button>
+                <button class="pad-btn" data-value="3">3</button>
+                <button class="pad-btn" data-value="4">4</button>
+                <button class="pad-btn" data-value="5">5</button>
+                <button class="pad-btn" data-value="6">6</button>
+                <button class="pad-btn" data-value="7">7</button>
+                <button class="pad-btn" data-value="8">8</button>
+                <button class="pad-btn" data-value="9">9</button>
+                
+            </div>
         </div>
     </div>
 

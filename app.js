@@ -1,12 +1,20 @@
 const gridElement = document.getElementById("grid");
+const numberPad = document.getElementById("numberPad");
+let selectedCell = null;
+let notesMode = false;
+let undoHistory = [];
 
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("service-worker.js")
     .then(() => console.log("Service Worker Registered"));
 }
 
-// Init
-fetchSudoku();
+// Show game and fetch a new puzzle
+function startGame() {
+    document.getElementById('mainMenu').classList.add('hidden');
+    document.getElementById('gameScreen').classList.remove('hidden');
+    newGame();
+}
 
 // Button handler
 function newGame() {
@@ -73,26 +81,126 @@ function stringToGrid(str) {
 
 // Render grid
 function renderGrid(grid) {
+    selectedCell = null;
     gridElement.innerHTML = "";
+    undoHistory = [];
+    updateUndoButton();
 
     grid.flat().forEach(value => {
-        const input = document.createElement("input");
-        input.type = "number";
-        input.min = 1;
-        input.max = 9;
-        input.classList.add("cell");
+        const cell = document.createElement("div");
+        cell.classList.add("cell");
+        cell.tabIndex = 0;
 
-        input.addEventListener("input", () => {
-            if (input.value > 9 || input.value < 1) input.value = "";
-        });
+        // Create main value span
+        const mainValue = document.createElement("span");
+        mainValue.classList.add("main-value");
 
-        if (value !== 0) {
-            input.value = value;
-            input.disabled = true;
+        // Create notes container
+        const notesDiv = document.createElement("div");
+        notesDiv.classList.add("notes");
+        for (let i = 1; i <= 9; i++) {
+            const noteSpan = document.createElement("span");
+            noteSpan.textContent = "";
+            notesDiv.appendChild(noteSpan);
         }
 
-        gridElement.appendChild(input);
+        cell.appendChild(mainValue);
+        cell.appendChild(notesDiv);
+
+        if (value !== 0) {
+            mainValue.textContent = value;
+            cell.classList.add("fixed");
+        }
+
+        cell.addEventListener("click", () => {
+            if (cell.classList.contains('fixed')) return;
+            selectCell(cell);
+        });
+
+        gridElement.appendChild(cell);
     });
+}
+
+function selectCell(cell) {
+    if (selectedCell) {
+        selectedCell.classList.remove('selected');
+    }
+    selectedCell = cell;
+    selectedCell.classList.add('selected');
+}
+
+function saveState() {
+    // Save current grid state to undo history
+    const cells = document.querySelectorAll(".cell");
+    const state = [];
+    
+    cells.forEach(cell => {
+        const mainValue = cell.querySelector('.main-value').textContent;
+        const notes = Array.from(cell.querySelector('.notes').querySelectorAll('span')).map(s => s.textContent);
+        state.push({ mainValue, notes });
+    });
+    
+    undoHistory.push(state);
+    updateUndoButton();
+}
+
+function updateUndoButton() {
+    const undoBtn = document.getElementById('undoBtn');
+    undoBtn.disabled = undoHistory.length === 0;
+}
+
+function undo() {
+    if (undoHistory.length === 0) return;
+    
+    const previousState = undoHistory.pop();
+    const cells = document.querySelectorAll(".cell");
+    
+    previousState.forEach((state, index) => {
+        const cell = cells[index];
+        const mainValue = cell.querySelector('.main-value');
+        const noteSpans = cell.querySelector('.notes').querySelectorAll('span');
+        
+        mainValue.textContent = state.mainValue;
+        noteSpans.forEach((span, i) => {
+            span.textContent = state.notes[i];
+        });
+    });
+    
+    updateUndoButton();
+}
+
+function fillSelected(value) {
+    if (!selectedCell) return;
+
+    const mainValue = selectedCell.querySelector('.main-value');
+
+    if (notesMode && value !== "") {
+        // In notes mode, save state and toggle the note
+        saveState();
+        const notesDiv = selectedCell.querySelector('.notes');
+        const noteSpans = notesDiv.querySelectorAll('span');
+        const noteIndex = parseInt(value) - 1;
+
+        if (noteSpans[noteIndex].textContent === value) {
+            noteSpans[noteIndex].textContent = "";
+        } else {
+            noteSpans[noteIndex].textContent = value;
+        }
+    } else if (value !== "") {
+        // In normal mode, save state then set the main value and clear notes
+        saveState();
+        mainValue.textContent = value;
+        const notesDiv = selectedCell.querySelector('.notes');
+        const noteSpans = notesDiv.querySelectorAll('span');
+        noteSpans.forEach(span => span.textContent = "");
+    } else {
+        // Clear button
+        saveState();
+        mainValue.textContent = "";
+        const notesDiv = selectedCell.querySelector('.notes');
+        const noteSpans = notesDiv.querySelectorAll('span');
+        noteSpans.forEach(span => span.textContent = "");
+    }
 }
 
 function getGridValues() {
@@ -101,7 +209,9 @@ function getGridValues() {
     for (let i = 0; i < 9; i++) {
         grid.push([]);
         for (let j = 0; j < 9; j++) {
-            const value = parseInt(cells[i * 9 + j].value) || 0;
+            const cell = cells[i * 9 + j];
+            const mainValue = cell.querySelector('.main-value').textContent.trim();
+            const value = parseInt(mainValue) || 0;
             grid[i].push(value);
         }
     }
@@ -139,4 +249,28 @@ function isValid(grid, checkEmpty=false) {
 function checkSolution() {
     const grid = getGridValues();
     alert(isValid(grid, true) ? "Looks good!" : "Something's wrong ❌");
+}
+
+if (numberPad) {
+    numberPad.addEventListener('click', event => {
+        const btn = event.target.closest('.pad-btn');
+        if (!btn) return;
+        if (btn.disabled) return;
+
+        const value = btn.getAttribute('data-value');
+
+        if (value === 'notes') {
+            // Toggle notes mode
+            notesMode = !notesMode;
+            btn.classList.toggle('active', notesMode);
+            return;
+        }
+
+        if (value === 'undo') {
+            undo();
+            return;
+        }
+
+        fillSelected(value);
+    });
 }
