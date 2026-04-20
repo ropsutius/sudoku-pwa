@@ -122,11 +122,36 @@ function renderGrid(grid) {
 }
 
 function selectCell(cell) {
+    const allCells = document.querySelectorAll(".cell");
+    
+    // Remove previous selection and highlight classes
     if (selectedCell) {
         selectedCell.classList.remove('selected');
+        allCells.forEach(c => {
+            c.classList.remove('row-highlight', 'col-highlight');
+        });
     }
+    
     selectedCell = cell;
     selectedCell.classList.add('selected');
+    
+    // Find row and column of selected cell
+    const selectedIndex = Array.from(allCells).indexOf(cell);
+    const selectedRow = Math.floor(selectedIndex / 9);
+    const selectedCol = selectedIndex % 9;
+    
+    // Highlight cells in same row and column
+    allCells.forEach((c, index) => {
+        const cellRow = Math.floor(index / 9);
+        const cellCol = index % 9;
+        
+        if (cellRow === selectedRow && c !== selectedCell) {
+            c.classList.add('row-highlight');
+        }
+        if (cellCol === selectedCol && c !== selectedCell) {
+            c.classList.add('col-highlight');
+        }
+    });
 }
 
 function saveState() {

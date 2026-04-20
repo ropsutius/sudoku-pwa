@@ -35,3 +35,8 @@ A beautiful, responsive Progressive Web App for playing Sudoku with multiple dif
 - Corrected Sudoku validation for rows, columns, and boxes
 - Added input validation and improved UI
 - Implemented responsive design and animations
+
+## TODO
+- Win condition
+- notenumbers disappear when conditions make them impossible
+- If all numbers of a number are filled, the number is disabled
